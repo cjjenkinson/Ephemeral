@@ -1,0 +1,7 @@
+mutation updateTrackById($id: UUID!, $input: UpdateTrackInput!) {
+  updateTrack(id: $id, input: $input) {
+    id
+    state
+    isDeleted
+  }
+}

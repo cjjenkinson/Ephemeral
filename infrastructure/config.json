@@ -1,0 +1,31 @@
+{
+  "core": {
+    "dynamo": {
+      "stack": "Dynamo",
+      "entry": "./src/core/dynamo"
+    },
+    "storage": {
+      "stack": "Storage",
+      "entry": "./src/core/storage"
+    },
+    "cognito": {
+      "stack": "Cognito",
+      "entry": "./src/core/cognito"
+    },
+    "graphql": {
+      "stack": "Graphql",
+      "entry": "./src/graphql"
+    }
+  },
+  "services": [
+    {
+      "stack": "XService",
+      "handlers": [
+        {
+          "name": "handler",
+          "entry": "./src/services/x-service/handler"
+        }
+      ]
+    }
+  ]
+}

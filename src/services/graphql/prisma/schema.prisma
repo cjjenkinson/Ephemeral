@@ -1,0 +1,38 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["selectRelationCount"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model User {
+  id                 String   @id @default(cuid())
+  createdAt          DateTime @default(now())
+  modifiedAt         DateTime @default(now())
+  email              String   @unique
+  username           String?  @unique
+  role               UserRole @default(USER)
+  name               String?
+}
+
+model Project {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  modifiedAt DateTime @default(now())
+  users      User[]
+  name       String
+  slug       String   @unique
+
+  stripeCustomerId       String?   @unique
+  stripeSubscriptionId   String?   @unique
+  stripePriceId          String?
+  stripeCurrentPeriodEnd DateTime?
+}

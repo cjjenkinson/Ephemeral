@@ -1,0 +1,14 @@
+version: "3"
+services:
+  # Postgres
+  captionease-pg:
+    image: postgres:latest
+    ports:
+      # Accessible from the host at port :35432
+      - "35433:5432"
+    environment:
+      POSTGRES_USER: postgres 
+      POSTGRES_PASSWORD: postgres 
+      POSTGRES_DB: captionease
+    # Make sure log colors show up correctly
+    tty: true

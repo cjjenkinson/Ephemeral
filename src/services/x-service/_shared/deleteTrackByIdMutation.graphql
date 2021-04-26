@@ -1,0 +1,6 @@
+mutation deleteTrackById($id: UUID!) {
+  deleteTrackById(id: $id) {
+    success
+    error
+  }
+}

@@ -1,0 +1,9 @@
+query getTrackById($id: UUID!) {
+  track(id: $id) {
+    id
+    state
+    trackKey
+    waveformId
+    waveformKey
+  }
+}
