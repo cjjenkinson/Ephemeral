@@ -7,7 +7,7 @@ import Koa from "koa";
 import helmet from "koa-helmet";
 import cors from "@koa/cors";
 import logger from "koa-logger";
-import { ApolloServer, ApolloError } from "apollo-server-koa";
+import { ApolloServer, ApolloError,  } from "apollo-server-koa";
 
 import { verifyToken } from "./middleware/verify-token";
 import getConfig from "../../utils/config";
@@ -17,10 +17,11 @@ import customConfig from "./config";
 import { schema } from "./schema";
 import createContext from "./context";
 import prisma from "./prisma";
+import authenticate from "./middleware/authenticate";
 
 dotenv.config();
 
-if (process.env.SENTRY_DSN) {
+if (process.env.SENTRY_DSN && process.env.LOCAL) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
     tracesSampleRate: 1.0,
@@ -37,28 +38,25 @@ async function server(config: any) {
   app.use(cors());
   app.use(logger());
 
-  // verify origin is one of localhost or trackstack
+  app.use(authenticate);
 
   const server = new ApolloServer({
     schema,
     context: async (context) => {
-      const { ctx: { request } } = context;
+      const {
+        ctx: { request },
+      } = context;
 
-      const currentUser = request?.header?.user_id 
-        ? await prisma.user.findUnique({
-          where: { id: request?.header?.user_id }
-        }) : null;
+      const auth = await verifyToken(request);
 
-      if (config.BYPASS_AUTH) {
-        return createContext({
-          auth: null,
-          user: currentUser,
-        }, config);
-      }
+      const currentUser = auth.userId ? await prisma.user.findUnique({
+        where: { id: auth.userId },
+      }) : null;
 
-      const decoded = await verifyToken(request);
-
-      return createContext({ auth: decoded, user: currentUser }, config);
+      return createContext(
+        { auth, user: currentUser },
+        config
+      );
     },
     plugins: [
       {

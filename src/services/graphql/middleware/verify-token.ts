@@ -1,6 +1,6 @@
 import { verifierFactory } from "@southlane/cognito-jwt-verifier";
 
-class AuthorizationError extends Error {}
+export class AuthenticationError extends Error {}
 
 export const createTokenVerifier = (appClientId: string) => {
   const verifier = verifierFactory({
@@ -15,30 +15,42 @@ export const createTokenVerifier = (appClientId: string) => {
 
 export const verifyToken = async (request) => {
   try {
-    if (!request.header.client_id) {
-      throw new AuthorizationError("Invalid client id header");
+    if (process.env.BYPASS_AUTH) {
+      return {
+        userId: request.header.user_id || null
+      }
     }
-
+    
     if (!request.header.authorization) {
-      throw new AuthorizationError("Invalid authorization header");
+      throw new AuthenticationError("Unauthorized");
     }
 
-    const verifier = createTokenVerifier(request.header.client_id);
+    const buffer = Buffer.from(request.header.authorization, 'base64');
+    const authorization = buffer.toString('utf-8');
 
-    const accessToken = request.header.authorization.split(" ")[1];
+    const [accessToken, clientId, userId] = authorization.split(":");
+
+    if (!accessToken || !clientId) {
+      throw new AuthenticationError("Unauthorized");
+    }
+
+    const verifier = createTokenVerifier(clientId);
 
     const decoded = await verifier.verify(accessToken);
 
     if (!decoded) {
-      throw new AuthorizationError("Unauthorized");
+      throw new AuthenticationError("Unauthorized");
     }
 
-    return decoded;
+    return {
+      ...decoded,
+      userId,
+    };
   } catch (error) {
     if (error.message.includes("JWT verification")) {
-      throw new AuthorizationError("Unauthorized");
+      throw new AuthenticationError("Unauthorized");
     }
 
-    throw new AuthorizationError(error.message);
+    throw error;
   }
 };
